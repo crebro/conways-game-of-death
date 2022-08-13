@@ -1,8 +1,6 @@
 let grid = []
 let rowNums
 let colNums
-let gridWidth
-let gridHeight
 let squareSize = 10
 let simulationBegun = false
 let framesPerSecond = 50
@@ -47,9 +45,8 @@ async function loadTemplate(templateUrl) {
 function setup() {
   rowNums = Math.floor(windowHeight / squareSize)
   colNums = Math.floor(windowWidth / squareSize)
-  setGridSize(squareSize)
 
-  const canvas = createCanvas(gridWidth, gridHeight)
+  const canvas = createCanvas(squareSize * colNums, squareSize * rowNums)
 
   canvas.mouseReleased(() => (mouseClicking = false))
   canvas.mousePressed(() => (mouseClicking = true))
@@ -71,10 +68,10 @@ function draw() {
 
   stroke(255, 255, 255)
   for (i = 0; i < rowNums; i++) {
-    line(0, i * squareSize, gridWidth, i * squareSize)
+    line(0, i * squareSize, squareSize * colNums, i * squareSize)
   }
   for (i = 0; i < colNums; i++) {
-    line(i * squareSize, 0, i * squareSize, gridHeight)
+    line(i * squareSize, 0, i * squareSize, squareSize * rowNums)
   }
 
   fill(255, 255, 255)
@@ -199,8 +196,6 @@ function windowResized() {
 
 function setGridSize(squareSize) {
   squareSize = squareSize
-  gridHeight = rowNums * squareSize
-  gridWidth = colNums * squareSize
 }
 
 function mouseWheel(event) {
