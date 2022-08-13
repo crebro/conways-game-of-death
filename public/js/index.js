@@ -47,8 +47,7 @@ async function loadTemplate(templateUrl) {
 function setup() {
   rowNums = Math.floor(windowHeight / squareSize)
   colNums = Math.floor(windowWidth / squareSize)
-  gridHeight = rowNums * squareSize
-  gridWidth = colNums * squareSize
+  setGridSize(squareSize)
 
   const canvas = createCanvas(gridWidth, gridHeight)
 
@@ -119,8 +118,6 @@ function mouseClickAction() {
     }
     return
   }
-
-  console.log('what about this')
 
   let row = Math.floor((mouseY - dragDetails.offset.yOffset) / squareSize)
   let col = Math.floor((mouseX - dragDetails.offset.xOffset) / squareSize)
@@ -200,10 +197,17 @@ function windowResized() {
   resizeCanvas(windowWidth, windowHeight)
 }
 
+function setGridSize(squareSize) {
+  squareSize = squareSize
+  gridHeight = rowNums * squareSize
+  gridWidth = colNums * squareSize
+}
+
 function mouseWheel(event) {
   if (event.deltaY < 0) {
     squareSize += 1
   } else if (event.deltaY > 0 && squareSize > originalSquareSize) {
     squareSize -= 1
   }
+  setgridsize(squareSize)
 }
