@@ -18,6 +18,8 @@ let dragDetails = {
   offset: { xOffset: 0, yOffset: 0 },
   lastMousePosition: { x: 0, y: 0 },
 }
+let previewingElement = false
+let previewGrid = []
 
 function initializeGrid(base) {
   grid = []
@@ -36,7 +38,8 @@ function initializeGrid(base) {
 async function loadTemplate(templateUrl) {
   const response = await fetch(templateUrl)
   const data = await response.json()
-  initializeGrid(data)
+  previewingElement = true
+  previewGrid = data
   return data
 }
 
@@ -81,6 +84,28 @@ function draw() {
     }
   }
 
+  if (previewingElement) {
+    fill(200, 200, 200)
+    let mouseRow = Math.floor(
+      (mouseY - dragDetails.offset.yOffset) / squareSize,
+    )
+    let mouseCol = Math.floor(
+      (mouseX - dragDetails.offset.xOffset) / squareSize,
+    )
+    for (let i = 0; i < previewGrid.length; i++) {
+      for (let j = 0; j < previewGrid[0].length; j++) {
+        if (previewGrid[i][j] === 1) {
+          rect(
+            (mouseCol + j) * squareSize,
+            (mouseRow + i) * squareSize,
+            squareSize,
+            squareSize,
+          )
+        }
+      }
+    }
+  }
+
   frames += 1
   if (frames > (1 / framesPerSecond) * p5Frames) {
     if (simulationBegun) {
@@ -95,6 +120,20 @@ function draw() {
 }
 
 function mouseClickAction() {
+  if (previewingElement) {
+    previewingElement = false
+    let mouseRow = Math.floor(
+      (mouseY - dragDetails.offset.yOffset) / squareSize,
+    )
+    let mouseCol = Math.floor(
+      (mouseX - dragDetails.offset.xOffset) / squareSize,
+    )
+    for (let i = 0; i < previewGrid.length; i++) {
+      grid[i + mouseRow].splice(mouseCol, previewGrid[i].length, ...previewGrid[i])
+    }
+    return
+  }
+
   if (dragToMoveMode) {
     if (
       mouseX !== dragDetails.lastMousePosition.x &&
@@ -193,5 +232,5 @@ function mouseWheel(event) {
   } else if (event.deltaY > 0 && squareSize > originalSquareSize) {
     squareSize -= 1
   }
-  setgridsize(squareSize)
+  setGridSize(squareSize)
 }
