@@ -20,6 +20,8 @@ let dragDetails = {
 }
 let previewingElement = false
 let previewGrid = []
+let updateFrameRequired = false
+let drawingSurface
 
 function initializeGrid(base) {
   grid = []
@@ -52,40 +54,73 @@ function setup() {
   canvas.mouseReleased(() => (mouseClicking = false))
   canvas.mousePressed(() => (mouseClicking = true))
 
+  drawingSurface = createGraphics(squareSize * colNums, squareSize * rowNums)
+
   document
     .getElementById('square-size-input')
     .addEventListener('input', (e) => {
       squareSize = originalSquareSize * (2 - e.currentTarget.value / 100)
+      updateFrameRequired = true
     })
 
   initializeGrid()
+  reDraw()
 }
 
 function draw() {
   frameRate(p5Frames)
+
   background(0)
-
   translate(dragDetails.offset.xOffset, dragDetails.offset.yOffset)
+  image(drawingSurface, 0, 0)
 
-  stroke(255, 255, 255)
+  if (mouseClicking && mouseIsPressed) {
+    mouseClickAction()
+  }
+
+  if (!(updateFrameRequired || simulationBegun || previewingElement)) {
+    return
+  }
+
+  reDraw()
+
+  frames += 1
+  if (frames > (1 / framesPerSecond) * p5Frames) {
+    if (simulationBegun) {
+      grid = calculateNextGeneration()
+    }
+    frames = 0
+  }
+  updateFrameRequired = false
+}
+
+function reDraw() {
+  drawingSurface.background(0)
+
+  drawingSurface.stroke(255, 255, 255)
   for (i = 0; i < rowNums; i++) {
-    line(0, i * squareSize, squareSize * colNums, i * squareSize)
+    drawingSurface.line(0, i * squareSize, squareSize * colNums, i * squareSize)
   }
   for (i = 0; i < colNums; i++) {
-    line(i * squareSize, 0, i * squareSize, squareSize * rowNums)
+    drawingSurface.line(i * squareSize, 0, i * squareSize, squareSize * rowNums)
   }
 
-  fill(255, 255, 255)
+  drawingSurface.fill(255, 255, 255)
   for (let i = 0; i < rowNums; i++) {
     for (let j = 0; j < colNums; j++) {
       if (grid[i][j] === 1) {
-        rect(j * squareSize, i * squareSize, squareSize, squareSize)
+        drawingSurface.rect(
+          j * squareSize,
+          i * squareSize,
+          squareSize,
+          squareSize,
+        )
       }
     }
   }
 
   if (previewingElement) {
-    fill(200, 200, 200)
+    drawingSurface.fill(200, 200, 200)
     let mouseRow = Math.floor(
       (mouseY - dragDetails.offset.yOffset) / squareSize,
     )
@@ -95,7 +130,7 @@ function draw() {
     for (let i = 0; i < previewGrid.length; i++) {
       for (let j = 0; j < previewGrid[0].length; j++) {
         if (previewGrid[i][j] === 1) {
-          rect(
+          drawingSurface.rect(
             (mouseCol + j) * squareSize,
             (mouseRow + i) * squareSize,
             squareSize,
@@ -104,18 +139,6 @@ function draw() {
         }
       }
     }
-  }
-
-  frames += 1
-  if (frames > (1 / framesPerSecond) * p5Frames) {
-    if (simulationBegun) {
-      grid = calculateNextGeneration()
-    }
-    frames = 0
-  }
-
-  if (mouseClicking && mouseIsPressed) {
-    mouseClickAction()
   }
 }
 
@@ -129,8 +152,13 @@ function mouseClickAction() {
       (mouseX - dragDetails.offset.xOffset) / squareSize,
     )
     for (let i = 0; i < previewGrid.length; i++) {
-      grid[i + mouseRow].splice(mouseCol, previewGrid[i].length, ...previewGrid[i])
+      grid[i + mouseRow].splice(
+        mouseCol,
+        previewGrid[i].length,
+        ...previewGrid[i],
+      )
     }
+    updateFrameRequired = true
     return
   }
 
@@ -166,6 +194,8 @@ function mouseClickAction() {
     lastClickedSquare.row = row
     lastClickedSquare.col = col
   }
+
+  updateFrameRequired = true
 }
 
 function mousePressed() {
@@ -223,6 +253,7 @@ function windowResized() {
 }
 
 function setGridSize(squareSize) {
+  updateFrameRequired = true
   squareSize = squareSize
 }
 
